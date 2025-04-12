@@ -19,7 +19,7 @@ function Layout({
       {showNavbar && <Navbar />}
       <main className={cn(
         `flex-1 bg-[#110e18]`,
-        showNavbar ? "mt-auto" : "",
+        showNavbar ? "mt-[60px]" : "",
         className
       )}>
         {children}
