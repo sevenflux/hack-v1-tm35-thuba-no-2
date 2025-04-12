@@ -7,8 +7,22 @@
 @layer base {
   :root {
     --background:   #110e18;
+    --foreground:   #f1f1f4;
+    --secondary:    #2d293d;
+    --border:       #3a3469;
     --agent-purple: #9b87f5;
     --agent-blue:   #0ea5e9;
     --agent-gary:   #99a1af;
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fade-in 0;
   }
 }
