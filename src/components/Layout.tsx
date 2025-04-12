@@ -1,6 +1,7 @@
 import React from "react";
 import Navbar from "./Navbar";
 import { cn } from "@/lib/utils";
+import Footer from "./Footer";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -18,11 +19,12 @@ function Layout({
       {showNavbar && <Navbar />}
       <main className={cn(
         `flex-1 bg-[#110e18]`,
-        showNavbar ? "mt-24" : "",
+        showNavbar ? "mt-[60px]" : "",
         className
       )}>
         {children}
       </main>
+      <Footer />
     </div>
   );
 }

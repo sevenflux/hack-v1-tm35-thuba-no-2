@@ -144,5 +144,9 @@ async function fetchContractData(currentAccount) {
   fs.writeFileSync('usr_reserves_data.json', JSON.stringify(userSummary, null, 2)); 
 }
 
+<<<<<<< HEAD
 // fetchContractData('0xd994B0210392a693f1d279946A2076dbE912f217');
+=======
+fetchContractData('0xd994B0210392a693f1d279946A2076dbE912f217');
+>>>>>>> 46a6343e4fc6ff59b06e2c6624af17449fc3decb
 export {fetchContractData}
