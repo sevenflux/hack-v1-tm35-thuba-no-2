@@ -16,8 +16,9 @@ function GlassCard({
     <div
       className={cn(
         "glass-card", // user-defined className
-        "p-6 transition-all duration-300",
-        hoverEffect && "hover:shadow-xl hover:shadow-orange-200",
+        `p-6 transition-all duration-400 glass-gradient backdrop-blur-lg border 
+       border-white/10 shadow-sm rounded-xl`,
+        hoverEffect && "hover:shadow-md",
         className
       )}
       {...props}
