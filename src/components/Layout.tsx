@@ -1,7 +1,6 @@
 import React from "react";
 import Navbar from "./Navbar";
 import { cn } from "@/lib/utils";
-import { Color } from "@/constants/tailwind";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -18,8 +17,8 @@ function Layout({
     <div className={`min-h-screen flex flex-col`}>
       {showNavbar && <Navbar />}
       <main className={cn(
-        `flex-1 bg-[${Color.background}]`,
-        showNavbar ? "mt-auto" : "",
+        `flex-1 bg-[#110e18]`,
+        showNavbar ? "mt-24" : "",
         className
       )}>
         {children}

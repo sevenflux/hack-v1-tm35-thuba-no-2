@@ -3,3 +3,12 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    --background:   #110e18;
+    --agent-purple: #9b87f5;
+    --agent-blue:   #0ea5e9;
+    --agent-gary:   #99a1af;
+  }
+}

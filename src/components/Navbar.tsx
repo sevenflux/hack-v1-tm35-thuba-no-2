@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { 
   Home,
   UserRound
@@ -17,7 +18,9 @@ import {
 } from "./ui/dropdown-menu";
 
 import { cn } from "@/lib/utils";
-import { Color } from "@/constants/tailwind";
+
+// Using tailwind.ts to generate the tailwindCSS properties dynamically is
+// impossible because tailwindCSS is a JIT compiler.
 
 function Navbar() {
   const [isOpen,         setIsOpen] = useState<boolean>(false);
@@ -28,52 +31,51 @@ function Navbar() {
     { name: "Dashboard", path: "/dashboard", icon: UserRound }
   ];
 
-  const isActive = (path: string) => window.location.pathname === path; // TODO: window is undefined.
-
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const isActive = (path: string) => usePathname() === path;
+
   return (
     <nav className={cn(
-      `fixed h-24 top-0 min-w-full z-50 flex items-center  transition-all 
-       duration-300 container px-8 bg-[${Color.background}]`,
+      `fixed h-24 top-0 min-w-full z-50 flex items-center transition-all 
+       duration-300 container px-8 bg-[#110e18]`,
       isScrolled || isOpen 
         ? "py-4 backdrop-blur-lg border-b border-gray-400"
         : "py-6"
     )}>
-      <div className={`flex items-center justify-between`}>
-        <Link href="/" className={`flex items-center gap-2`}>
+      <div className={`flex justify-between items-center`}>
+        <Link href="/" className={`flex gap-2 items-center`}>
           <div className={
-            `h-9 w-9 rounded-xl bg-gradient-to-tr from-[${Color.textPurple}]
-             to-[${Color.textBlue}] flex items-center justify-center bg-border`
+            `flex justify-center items-center w-9 h-9 bg-gradient-to-tr rounded-xl 
+             from-[#9b87f5] to-[#0ea5e9] bg-border`
           }>
             <div className={
-              `h-6 w-6 rounded-lg bg-[#1e1e2e] flex items-center justify-center 
-              text-white font-bold`
+              `flex justify-center items-center w-6 h-6 font-bold text-white rounded-lg bg-[#110e18]`
             }>
               A
             </div>
           </div>
           <span className={
-            `text-2xl font-bold tracking-tight bg-clip-text bg-gradient-to-tr from-[${Color.textPurple}] 
-             to-[${Color.textBlue}] text-transparent`
+            `text-2xl font-bold tracking-tight bg-clip-text bg-gradient-to-tr from-[#9b87f5] 
+             to-[#0ea5e9] text-transparent`
           }>
             AGENT
           </span>
         </Link>
 
         {/* Desktop Menu */}
-        <div className={`hidden md:flex items-center gap-8`}>
+        <div className={`hidden gap-8 items-center md:flex`}>
           {navigateItems.map((item) => (
             <Link
               key={item.path}
               href={item.path}
               className={cn(
-                `text-sm font-medium transition-colors hover:text-[${Color.textPurple}]`,
-                isActive(item.path) ? `text-[${Color.textPurple}]` : `text-[${Color.textGray}]`
+                `text-sm font-medium transition-colors hover:text-[#9b87f5]`,
+                isActive(item.path) ? `text-[#9b87f5]` : `text-[#99a1af]`
               )}
             >
               {item.name}
