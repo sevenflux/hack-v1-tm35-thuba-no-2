@@ -31,4 +31,8 @@
   .force-break {
     word-break: break-all;
   }
+
+  body {
+    background-color: #110e18;
+  }
 }
