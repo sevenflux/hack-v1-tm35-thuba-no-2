@@ -5,23 +5,211 @@ import {
   HandCoins,
   TrendingUp
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import Markdown from "react-markdown"
+import { createChart, ColorType, BarSeries } from "lightweight-charts";
 
 import GlassCard from "@/components/GlassCard";
 import Layout from "@/components/Layout";
-import { cn } from "@/lib/utils";
+import { cn, formatBigNum } from "@/lib/utils";
 import "../globals.css";
+import { DEEPSEEK_API_KEY, CONTRACT_DATA_USER } from "@/assets/.env.ts";
+import FormattedData from "@/types/formattedData";
+
+import { ethers } from "ethers";
+import {
+  UiPoolDataProvider,
+  UiIncentiveDataProvider,
+  ChainId,
+  ReserveDataHumanized,
+} from "@aave/contract-helpers";
+import * as markets from "@bgd-labs/aave-address-book"
+import {
+  formatReserves,
+  formatReservesAndIncentives,
+  formatUserSummaryAndIncentives,
+  FormatReserveUSDResponse
+} from "@aave/math-utils";
+import dayjs from "dayjs";
+
+import { TEST_ANSWER_1 } from "@/assets/testContent";
+import ChartComponent from "@/components/Chart";
 
 function Dashboard() {
-  const [supplyingValue, setSupplyingValue] = useState<string>("2.2B");
-  const [borrowingValue, setBorrowingValue] = useState<string>("2.2B");
-  const [apyValue,             setAPYValue] = useState<string>("5.75");
+  const [coinSymbol,             setCoinSymbol] = useState<string>("WETH");
+  const [coinData,                 setCoinData] = useState<FormattedData>(null);
+  const [supplyingValue,     setSupplyingValue] = useState<string>("◌");
+  const [borrowingValue,     setBorrowingValue] = useState<string>("◌");
+  const [utilizationValue, setUtilizationValue] = useState<string>("◌");
+  const [aiSuggestion,         setAISuggestion] = useState<string>(TEST_ANSWER_1)
+  const [messages,                 setMessages] = useState<string[]>([]);
+  // const [historyRatio,         setHistoryRatio] = useState<{ time: number; value: number}[]>([])
 
   const glassGardItems = [
     { color: "#9b87f5", title: "Supply", icon: PiggyBank, value: supplyingValue, unit: "USDT" },
     { color: "#81c8be", title: "Borrow", icon: HandCoins, value: borrowingValue, unit: "USDT" },
-    { color: "#ef9f76", title: "APY", icon: TrendingUp, value: apyValue, unit: "%" }
+    { color: "#ef9f76", title: "Utilization", icon: TrendingUp, value: utilizationValue, unit: "%" }
   ];
+
+  // Sample RPC address for querying ETH mainnet
+  const provider = new ethers.providers.JsonRpcProvider(
+    'https://eth-mainnet.public.blastapi.io',
+  );
+
+  // User address to fetch data for, insert address here
+  // const currentAccount = '0xd994B0210392a693f1d279946A2076dbE912f217';
+
+  // View contract used to fetch all reserves data (including market base currency data), and user reserves
+  // Using Aave V3 Eth Mainnet address for demo
+  const poolDataProviderContract = new UiPoolDataProvider({
+    uiPoolDataProviderAddress: markets.AaveV3Ethereum.UI_POOL_DATA_PROVIDER,
+    provider,
+    chainId: ChainId.mainnet,
+  });
+
+  // View contract used to fetch all reserve incentives (APRs), and user incentives
+  // Using Aave V3 Eth Mainnet address for demo
+  const incentiveDataProviderContract = new UiIncentiveDataProvider({
+    uiIncentiveDataProviderAddress:
+      markets.AaveV3Ethereum.UI_INCENTIVE_DATA_PROVIDER,
+    provider,
+    chainId: ChainId.mainnet,
+  });
+
+  /**
+   * This function is to get the aave market data
+   */
+  async function fetchContractData(currentAccount: string) {
+    // Object containing array of pool reserves and market base currency data
+    // { reservesArray, baseCurrencyData }
+    const reserves = await poolDataProviderContract.getReservesHumanized({
+      lendingPoolAddressProvider: markets.AaveV3Ethereum.POOL_ADDRESSES_PROVIDER,
+    });
+
+    // Object containing array or users aave positions and active eMode category
+    // { userReserves, userEmodeCategoryId }
+    const userReserves = await poolDataProviderContract.getUserReservesHumanized({
+      lendingPoolAddressProvider: markets.AaveV3Ethereum.POOL_ADDRESSES_PROVIDER,
+      user: currentAccount,
+    });
+
+    // Array of incentive tokens with price feed and emission APR
+    const reserveIncentives =
+      await incentiveDataProviderContract.getReservesIncentivesDataHumanized({
+        lendingPoolAddressProvider:
+          markets.AaveV3Ethereum.POOL_ADDRESSES_PROVIDER,
+      });
+
+    // Dictionary of claimable user incentives
+    const userIncentives =
+      await incentiveDataProviderContract.getUserReservesIncentivesDataHumanized({
+        lendingPoolAddressProvider:
+          markets.AaveV3Ethereum.POOL_ADDRESSES_PROVIDER,
+        user: currentAccount,
+      });
+
+    // `reserves` variable here is input from Setup section
+
+    const reservesArray = reserves.reservesData;
+    const baseCurrencyData = reserves.baseCurrencyData;
+    const userReservesArray = userReserves.userReserves;
+
+    const currentTimestamp = dayjs().unix();
+
+    /*
+    - @param `reserves` Input from [Fetching Protocol Data](#fetching-protocol-data), `reserves.reservesArray`
+    - @param `currentTimestamp` Current UNIX timestamp in seconds
+    - @param `marketReferencePriceInUsd` Input from [Fetching Protocol Data](#fetching-protocol-data), `reserves.baseCurrencyData.marketReferencePriceInUsd`
+    - @param `marketReferenceCurrencyDecimals` Input from [Fetching Protocol Data](#fetching-protocol-data), `reserves.baseCurrencyData.marketReferenceCurrencyDecimals`
+    */
+    const formattedPoolReserves = formatReserves({
+      reserves: reservesArray,
+      currentTimestamp,
+      marketReferenceCurrencyDecimals:
+        baseCurrencyData.marketReferenceCurrencyDecimals,
+      marketReferencePriceInUsd: baseCurrencyData.marketReferenceCurrencyPriceInUsd,
+    });
+
+    // const formattedPoolReserves = formatReservesAndIncentives({
+    //   reserves: reservesArray,
+    //   currentTimestamp,
+    //   marketReferenceCurrencyDecimals:
+    //     baseCurrencyData.marketReferenceCurrencyDecimals,
+    //   marketReferencePriceInUsd: baseCurrencyData.marketReferenceCurrencyPriceInUsd,
+    //   reserveIncentives,
+    // });
+    // // console.log({ reserves, userReserves, reserveIncentives, userIncentives });
+    // console.log(formattedPoolReserves)
+
+    /*
+    - @param `currentTimestamp` Current UNIX timestamp in seconds, Math.floor(Date.now() / 1000)
+    - @param `marketReferencePriceInUsd` Input from [Fetching Protocol Data](#fetching-protocol-data), `reserves.baseCurrencyData.marketReferencePriceInUsd`
+    - @param `marketReferenceCurrencyDecimals` Input from [Fetching Protocol Data](#fetching-protocol-data), `reserves.baseCurrencyData.marketReferenceCurrencyDecimals`
+    - @param `userReserves` Input from [Fetching Protocol Data](#fetching-protocol-data), combination of `userReserves.userReserves` and `reserves.reservesArray`
+    - @param `userEmodeCategoryId` Input from [Fetching Protocol Data](#fetching-protocol-data), `userReserves.userEmodeCategoryId`
+    - @param `reserveIncentives` Input from [Fetching Protocol Data](#fetching-protocol-data), `reserveIncentives`
+    - @param `userIncentives` Input from [Fetching Protocol Data](#fetching-protocol-data), `userIncentives`
+    */
+
+    const formattedReserves = formatReserves({
+      reserves: reservesArray,
+      currentTimestamp,
+      marketReferenceCurrencyDecimals:
+        baseCurrencyData.marketReferenceCurrencyDecimals,
+      marketReferencePriceInUsd: baseCurrencyData.marketReferenceCurrencyPriceInUsd,
+    });
+    const userSummary = formatUserSummaryAndIncentives({
+      currentTimestamp,
+      marketReferencePriceInUsd: baseCurrencyData.marketReferenceCurrencyPriceInUsd,
+      marketReferenceCurrencyDecimals:
+        baseCurrencyData.marketReferenceCurrencyDecimals,
+      userReserves: userReservesArray,
+      formattedReserves,
+      userEmodeCategoryId: userReserves.userEmodeCategoryId,
+      reserveIncentives,
+      userIncentives,
+    });
+
+    for (let i: number = 0; i < formattedReserves.length; ++i) {
+      let current = formattedReserves[i];
+      current.borrowUsageRatio
+      if (current.symbol === coinSymbol) {
+        setCoinData({
+          name: current.name,
+          symbol: current.symbol,
+          priceInUSD: current.priceInUSD,
+          totalLiquidityUSD: current.totalLiquidityUSD,
+          availableLiquidityUSD: current.availableLiquidityUSD,
+          totalDebtUSD: current.totalDebtUSD,
+          borrowUsageRatio: current.borrowUsageRatio,
+          formattedBaseLTVasCollateral: current.formattedBaseLTVasCollateral,
+          formattedReserveLiquidationThreshold: current.formattedReserveLiquidationThreshold,
+          formattedReserveLiquidationBonus: current.formattedReserveLiquidationBonus,
+          supplyAPY: current.supplyAPY,
+          variableBorrowAPY: current.variableBorrowAPY,
+          borrowCapUSD: current.borrowCapUSD,
+          supplyCapUSD: current.supplyCapUSD,
+          supplyUsageRatio: current.supplyUsageRatio,
+          supplyAPR: current.supplyAPR,
+          variableBorrowAPR: current.variableBorrowAPR,
+          isFrozen: current.isFrozen,
+          isActive: current.isActive,
+          unbackedUSD: current.unbackedUSD,
+          accruedToTreasury: current.accruedToTreasury
+        });
+        setSupplyingValue(formatBigNum(current.totalLiquidityUSD));
+        setBorrowingValue(formatBigNum(current.totalDebtUSD));
+        let ratio: number = parseFloat(current.totalDebt) / parseFloat(current.totalLiquidity) * 100;
+        setUtilizationValue(ratio.toFixed(2).toString());
+      }
+    }
+  }
+
+  useEffect(() => {
+    fetchContractData(CONTRACT_DATA_USER);
+    const intervalContract = setInterval(() => fetchContractData(CONTRACT_DATA_USER), 10000);
+    return () => clearInterval(intervalContract);
+  }, [])
 
   // I find a safe way to dynamically generate the template string in tailwindCSS
   // property: using safelist prop in tailwind.config.js
@@ -31,7 +219,7 @@ function Dashboard() {
       <div className={`flex flex-row mt-10`}>
         <div className={cn(
           "data-dashboard", // user-defined className
-          "flex-1 flex flex-col px-10"
+          "flex-1 flex flex-col px-10 h-250"
         )}>
           <div className={`flex-1 flex flex-row justify-between gap-7`}>
             {glassGardItems.map((item) => (
@@ -52,11 +240,50 @@ function Dashboard() {
               </GlassCard>
             ))}
           </div>
+          <div className={`flex-4 py-10 text-white grid justify-stretch`}>
+            <GlassCard>
+              <Markdown>
+                {aiSuggestion}
+              </Markdown>
+            </GlassCard>
+          </div>
         </div>
         <div className={cn(
           "chat-dashboard", // user-defined className
-          "flex-1"
-        )}></div>
+          "flex-1 flex flex-col pr-10 h-250 justify-between gap-7 pb-10"
+        )}>
+          <div className={`flex-1 grid justify-stretch`}>
+            <GlassCard>
+              <ChartComponent 
+                data={[]} 
+                // newSupplyData={{
+                //   time: dayjs().unix(),
+                //   value: coinData
+                //     ? parseFloat(coinData.totalLiquidityUSD)
+                //     : 0
+                // }}
+                // newBorrowData={{
+                //   time: dayjs().unix(),
+                //   value: coinData
+                //     ? parseFloat(coinData.totalDebtUSD)
+                //     : 0
+                // }}
+                newLTVData={{
+                  time: dayjs().unix(),
+                  value: coinData
+                    ? parseFloat(coinData.formattedBaseLTVasCollateral)
+                    : 0
+                }}
+                coinSymbol={coinSymbol}
+              >
+
+              </ChartComponent>
+            </GlassCard>
+          </div>  
+          <div className={`flex-2 flex flex-col border-white/10 border rounded-xl`}>
+            
+          </div>
+        </div>
       </div>
     </Layout>
   );
