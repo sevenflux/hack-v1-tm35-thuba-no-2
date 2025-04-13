@@ -1,0 +1,26 @@
+# 环境变量
+.env
+
+# Python缓存文件
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 虚拟环境
+venv/
+env/
+ENV/
+
+# 分析结果输出
+analysis_result.txt
+
+# IDE文件
+.vscode/
+.idea/
+
+# 日志文件
+*.log 
+
+# 其他文件
+aave_Parameter.txt
+json_filter.txt
