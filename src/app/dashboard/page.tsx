@@ -7,7 +7,6 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import Markdown from "react-markdown"
-import { createChart, ColorType, BarSeries } from "lightweight-charts";
 
 import GlassCard from "@/components/GlassCard";
 import Layout from "@/components/Layout";
@@ -32,7 +31,7 @@ import {
 } from "@aave/math-utils";
 import dayjs from "dayjs";
 
-import { TEST_ANSWER_1 } from "@/assets/testContent";
+import { TEST_ANSWER_1, TEST_MESSAGES_1 } from "@/assets/testContent";
 import ChartComponent from "@/components/Chart";
 
 function Dashboard() {
@@ -42,8 +41,7 @@ function Dashboard() {
   const [borrowingValue,     setBorrowingValue] = useState<string>("◌");
   const [utilizationValue, setUtilizationValue] = useState<string>("◌");
   const [aiSuggestion,         setAISuggestion] = useState<string>(TEST_ANSWER_1)
-  const [messages,                 setMessages] = useState<string[]>([]);
-  // const [historyRatio,         setHistoryRatio] = useState<{ time: number; value: number}[]>([])
+  const [messages,                 setMessages] = useState<string[]>(TEST_MESSAGES_1);
 
   const glassGardItems = [
     { color: "#9b87f5", title: "Supply", icon: PiggyBank, value: supplyingValue, unit: "USDT" },
@@ -219,7 +217,7 @@ function Dashboard() {
       <div className={`flex flex-row mt-10`}>
         <div className={cn(
           "data-dashboard", // user-defined className
-          "flex-1 flex flex-col px-10 h-250"
+          "flex-1 flex flex-col px-10 h-250 max-h-250"
         )}>
           <div className={`flex-1 flex flex-row justify-between gap-7`}>
             {glassGardItems.map((item) => (
@@ -250,7 +248,7 @@ function Dashboard() {
         </div>
         <div className={cn(
           "chat-dashboard", // user-defined className
-          "flex-1 flex flex-col pr-10 h-250 justify-between gap-7 pb-10"
+          "flex-1 shrink-0 flex flex-col pr-10 h-250 max-h-250 justify-between gap-7 pb-10"
         )}>
           <div className={`flex-1 grid justify-stretch`}>
             <GlassCard>
@@ -275,13 +273,40 @@ function Dashboard() {
                     : 0
                 }}
                 coinSymbol={coinSymbol}
-              >
-
-              </ChartComponent>
+              />
             </GlassCard>
-          </div>  
-          <div className={`flex-2 flex flex-col border-white/10 border rounded-xl`}>
-            
+          </div>
+          <div className={`flex-2 flex flex-col h-screen border-white/10 border rounded-xl`}>
+            <div className={`overflow-y-auto`}>
+              {messages.map((message, index) => {
+                return index % 2 === 0 ? (
+                  <div className={`flex flex-row-reverse w-full pr-10 pt-10`} key={index}>
+                    <GlassCard className={` text-white max-w-100`}>
+                      {message}
+                    </GlassCard>
+                  </div>
+                ) : (
+                  <div className={`flex flex-row w-full pl-10 pt-10`} key={index}>
+                    <GlassCard className={`text-white w-full max-w-100`}>
+                      <Markdown>
+                        {message}
+                      </Markdown>
+                    </GlassCard>
+                  </div>
+                )
+              })}
+            </div>
+            <div className={`sticky bottom-0 flex flex-col py-5 px-5 bg-[#110e18]`}>
+              <div className={`border border-white/10 rounded-xl`}>
+                <textarea
+                  className={
+                    `w-full flex-2 outline-0 text-white h-25 p-3 resize-none`
+                  }
+                  placeholder="Message Deepseek"
+                />
+                <div className={`flex-1`}></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
