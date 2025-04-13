@@ -5,8 +5,9 @@ import {
   HandCoins,
   TrendingUp
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Markdown from "react-markdown"
+import { createChart, ColorType, BarSeries } from "lightweight-charts";
 
 import GlassCard from "@/components/GlassCard";
 import Layout from "@/components/Layout";
@@ -26,6 +27,17 @@ function Dashboard() {
     { color: "#81c8be", title: "Borrow", icon: HandCoins, value: borrowingValue, unit: "USDT" },
     { color: "#ef9f76", title: "APY", icon: TrendingUp, value: apyValue, unit: "%" }
   ];
+
+  // const chartRef = useRef(null);
+
+  // useEffect(() => {
+  //   const chart = createChart(
+  //     chartRef.current, {
+  //       layout: { background: { type: ColorType.Solid, color: "white" } },
+  //     }
+  //   );
+  //   const barSeries = chart.addSeries(BarSeries, )
+  // }, []);
 
   // I find a safe way to dynamically generate the template string in tailwindCSS
   // property: using safelist prop in tailwind.config.js
@@ -66,8 +78,14 @@ function Dashboard() {
         </div>
         <div className={cn(
           "chat-dashboard", // user-defined className
-          "flex-1"
-        )}></div>
+          "flex-1 flex flex-col pr-10"
+        )}>
+          <div className={`flex-1`}>
+            <GlassCard>
+
+            </GlassCard>
+          </div>
+        </div>
       </div>
     </Layout>
   );
