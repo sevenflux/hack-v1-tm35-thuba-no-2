@@ -42,6 +42,7 @@ function Dashboard() {
   const [utilizationValue, setUtilizationValue] = useState<string>("◌");
   const [aiSuggestion,         setAISuggestion] = useState<string>(TEST_ANSWER_1)
   const [messages,                 setMessages] = useState<string[]>(TEST_MESSAGES_1);
+  const [userInput,               setUserInput] = useState<string>("");
 
   const glassGardItems = [
     { color: "#9b87f5", title: "Supply", icon: PiggyBank, value: supplyingValue, unit: "USDT" },
@@ -276,8 +277,8 @@ function Dashboard() {
               />
             </GlassCard>
           </div>
-          <div className={`flex-2 flex flex-col h-screen border-white/10 border rounded-xl`}>
-            <div className={`overflow-y-auto`}>
+          <div className={`flex-2 flex flex-col border-white/10 border rounded-xl h-1/3`}>
+            <div className={`overflow-auto flex-1 box-border`}>
               {messages.map((message, index) => {
                 return index % 2 === 0 ? (
                   <div className={`flex flex-row-reverse w-full pr-10 pt-10`} key={index}>
@@ -296,13 +297,15 @@ function Dashboard() {
                 )
               })}
             </div>
-            <div className={`sticky bottom-0 flex flex-col py-5 px-5 bg-[#110e18]`}>
+            <div className={`sticky bottom-0 flex flex-col py-5 px-5 bg-[#110e18] rounded-xl`}>
               <div className={`border border-white/10 rounded-xl`}>
                 <textarea
                   className={
                     `w-full flex-2 outline-0 text-white h-25 p-3 resize-none`
                   }
                   placeholder="Message Deepseek"
+                  value={userInput}
+                  onChange={(e) => setUserInput(e.target.value)}
                 />
                 <div className={`flex-1`}></div>
               </div>
