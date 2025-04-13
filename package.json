@@ -11,10 +11,12 @@
   "dependencies": {
     "@aave/contract-helpers": "^1.33.1",
     "@aave/math-utils": "^1.33.1",
+    "@bgd-labs/aave-address-book": "^4.18.0",
     "@radix-ui/themes": "^3.2.1",
     "autoprefixer": "^10.4.21",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "dayjs": "^1.11.13",
     "ethers": "^5.8.0",
     "framer-motion": "^12.6.3",
     "lightweight-charts": "^5.0.5",
