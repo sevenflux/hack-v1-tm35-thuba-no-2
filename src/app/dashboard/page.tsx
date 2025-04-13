@@ -33,6 +33,7 @@ import {
 import dayjs from "dayjs";
 
 import { TEST_ANSWER_1 } from "@/assets/testContent";
+import ChartComponent from "@/components/Chart";
 
 function Dashboard() {
   const [coinSymbol,             setCoinSymbol] = useState<string>("WETH");
@@ -42,6 +43,7 @@ function Dashboard() {
   const [utilizationValue, setUtilizationValue] = useState<string>("◌");
   const [aiSuggestion,         setAISuggestion] = useState<string>(TEST_ANSWER_1)
   const [messages,                 setMessages] = useState<string[]>([]);
+  // const [historyRatio,         setHistoryRatio] = useState<{ time: number; value: number}[]>([])
 
   const glassGardItems = [
     { color: "#9b87f5", title: "Supply", icon: PiggyBank, value: supplyingValue, unit: "USDT" },
@@ -205,7 +207,7 @@ function Dashboard() {
 
   useEffect(() => {
     fetchContractData(CONTRACT_DATA_USER);
-    const intervalContract = setInterval(() => fetchContractData(CONTRACT_DATA_USER), 6000);
+    const intervalContract = setInterval(() => fetchContractData(CONTRACT_DATA_USER), 10000);
     return () => clearInterval(intervalContract);
   }, [])
 
@@ -252,7 +254,24 @@ function Dashboard() {
         )}>
           <div className={`flex-1 grid justify-stretch`}>
             <GlassCard>
+              <ChartComponent 
+                data={[]} 
+                newSupplyData={{
+                  time: dayjs().unix(),
+                  value: coinData
+                    ? parseFloat(coinData.totalLiquidityUSD)
+                    : 0
+                }}
+                newBorrowData={{
+                  time: dayjs().unix(),
+                  value: coinData
+                    ? parseFloat(coinData.totalDebtUSD)
+                    : 0
+                }}
+                coinSymbol={coinSymbol}
+              >
 
+              </ChartComponent>
             </GlassCard>
           </div>  
           <div className={`flex-2 flex flex-col border-white/10 border rounded-xl`}>
