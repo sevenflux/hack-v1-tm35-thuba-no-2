@@ -256,16 +256,22 @@ function Dashboard() {
             <GlassCard>
               <ChartComponent 
                 data={[]} 
-                newSupplyData={{
+                // newSupplyData={{
+                //   time: dayjs().unix(),
+                //   value: coinData
+                //     ? parseFloat(coinData.totalLiquidityUSD)
+                //     : 0
+                // }}
+                // newBorrowData={{
+                //   time: dayjs().unix(),
+                //   value: coinData
+                //     ? parseFloat(coinData.totalDebtUSD)
+                //     : 0
+                // }}
+                newLTVData={{
                   time: dayjs().unix(),
                   value: coinData
-                    ? parseFloat(coinData.totalLiquidityUSD)
-                    : 0
-                }}
-                newBorrowData={{
-                  time: dayjs().unix(),
-                  value: coinData
-                    ? parseFloat(coinData.totalDebtUSD)
+                    ? parseFloat(coinData.formattedBaseLTVasCollateral)
                     : 0
                 }}
                 coinSymbol={coinSymbol}

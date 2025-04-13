@@ -4,11 +4,12 @@ import React, { useEffect, useRef } from 'react';
 export default function ChartComponent(props) {
   const {
     data,
-    newSupplyData,
-    newBorrowData,
+    // newSupplyData,
+    // newBorrowData,
+    newLTVData,
     colors: {
       backgroundColor = 'transparent',
-      minusColor = '#2962FF',
+      ltvColor = '#2962FF',
       supplyColor = '#9b87f5',
       borrowColor = '#81c8be',
       textColor = 'white',
@@ -17,8 +18,7 @@ export default function ChartComponent(props) {
   } = props;
 
   const chartContainerRef = useRef<HTMLDivElement>(null);
-  const supplySeries = useRef<ISeriesApi<"Line">>(null);
-  const borrowSeries = useRef<ISeriesApi<"Line">>(null);
+  const ltvSeries = useRef<ISeriesApi<"Line">>(null);
 
   useEffect(() => {
     const handleResize = () => {
@@ -39,11 +39,12 @@ export default function ChartComponent(props) {
     });
     chart.timeScale().fitContent();
 
-    supplySeries.current = chart.addSeries(LineSeries, { color: supplyColor});
-    borrowSeries.current = chart.addSeries(LineSeries, { color: borrowColor});
+    // supplySeries.current = chart.addSeries(LineSeries, { color: supplyColor});
+    // borrowSeries.current = chart.addSeries(LineSeries, { color: borrowColor});
+    ltvSeries.current = chart.addSeries(LineSeries, {color: ltvColor});
     if (chartContainerRef.current === null) {
-      supplySeries.current.setData(data);
-      borrowSeries.current.setData(data);
+      // supplySeries.current.setData(data);
+      // borrowSeries.current.setData(data);
     }
 
     window.addEventListener('resize', handleResize);
@@ -57,9 +58,10 @@ export default function ChartComponent(props) {
   }, [coinSymbol]);
 
   useEffect(() => {
-    supplySeries.current.update(newSupplyData);
-    borrowSeries.current.update(newBorrowData);
-  }, [newSupplyData, newBorrowData]);
+    // supplySeries.current.update(newSupplyData);
+    // borrowSeries.current.update(newBorrowData);
+    ltvSeries.current.update(newLTVData);
+  }, [newLTVData]);
 
   return (
     <div
