@@ -3,7 +3,8 @@
 import { 
   PiggyBank,
   HandCoins,
-  TrendingUp
+  TrendingUp,
+  ArrowUpRight
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import Markdown from "react-markdown"
@@ -14,6 +15,7 @@ import { cn, formatBigNum } from "@/lib/utils";
 import "../globals.css";
 import { DEEPSEEK_API_KEY, CONTRACT_DATA_USER } from "@/assets/.env.ts";
 import FormattedData from "@/types/formattedData";
+import { prompt } from "@/constants/prompt";
 
 import { ethers } from "ethers";
 import {
@@ -22,7 +24,7 @@ import {
   ChainId,
   ReserveDataHumanized,
 } from "@aave/contract-helpers";
-import * as markets from "@bgd-labs/aave-address-book"
+import * as markets from "@bgd-labs/aave-address-book";
 import {
   formatReserves,
   formatReservesAndIncentives,
@@ -33,15 +35,18 @@ import dayjs from "dayjs";
 
 import { TEST_ANSWER_1, TEST_MESSAGES_1 } from "@/assets/testContent";
 import ChartComponent from "@/components/Chart";
+import { IconButton } from "@radix-ui/themes";
+import DeepseekAPI from "@/types/deepseekAPI";
+import DeepseekReturnJSON from "@/types/deepseekReturnJSON";
 
 function Dashboard() {
-  const [coinSymbol,             setCoinSymbol] = useState<string>("WETH");
+  const [coinSymbol,             setCoinSymbol] = useState<string>("");
   const [coinData,                 setCoinData] = useState<FormattedData>(null);
   const [supplyingValue,     setSupplyingValue] = useState<string>("◌");
   const [borrowingValue,     setBorrowingValue] = useState<string>("◌");
   const [utilizationValue, setUtilizationValue] = useState<string>("◌");
-  const [aiSuggestion,         setAISuggestion] = useState<string>(TEST_ANSWER_1)
-  const [messages,                 setMessages] = useState<string[]>(TEST_MESSAGES_1);
+  const [aiSuggestion,         setAISuggestion] = useState<string>("");
+  const [messages,                 setMessages] = useState<string[]>([]);
   const [userInput,               setUserInput] = useState<string>("");
 
   const glassGardItems = [
@@ -204,11 +209,54 @@ function Dashboard() {
     }
   }
 
+  function handleAskingAI(message: string) {
+    fetch("https://api.deepseek.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${DEEPSEEK_API_KEY}`
+      },
+      body: JSON.stringify({
+        "model": "deepseek-chat",
+        "messages": [
+          {"role": "system", "content": prompt},
+          {"role": "user", "content": JSON.stringify(coinData)},
+          {"role": "user", "content": message}
+        ],
+        "temperature": 0.3,
+        "max_tokens": 3000
+      })
+    })
+    .then((response: Response) => response.json())
+    .then((data: DeepseekAPI) => {
+      const deepseekReturn: string = data.choices[0].message.content;
+      const deepseekParse: DeepseekReturnJSON 
+        = JSON.parse(deepseekReturn.substring(8, deepseekReturn.length - 3));
+      setMessages(prev => [...prev, deepseekParse.message]);
+
+      for (let operation of deepseekParse.opArray) {
+        switch (operation.op) {
+          case 1 : {
+            setCoinSymbol(operation.data);
+            break;
+          };
+          case 2 : {
+            setAISuggestion(operation.data);
+            break;
+          }
+        }
+      }
+    })
+  }
+
   useEffect(() => {
     fetchContractData(CONTRACT_DATA_USER);
-    const intervalContract = setInterval(() => fetchContractData(CONTRACT_DATA_USER), 10000);
+    const intervalContract = setInterval(() => {
+      // if (coinSymbol === "") return;
+      fetchContractData(CONTRACT_DATA_USER);
+    }, 10000);
     return () => clearInterval(intervalContract);
-  }, [])
+  }, [coinSymbol])
 
   // I find a safe way to dynamically generate the template string in tailwindCSS
   // property: using safelist prop in tailwind.config.js
@@ -255,22 +303,10 @@ function Dashboard() {
             <GlassCard>
               <ChartComponent 
                 data={[]} 
-                // newSupplyData={{
-                //   time: dayjs().unix(),
-                //   value: coinData
-                //     ? parseFloat(coinData.totalLiquidityUSD)
-                //     : 0
-                // }}
-                // newBorrowData={{
-                //   time: dayjs().unix(),
-                //   value: coinData
-                //     ? parseFloat(coinData.totalDebtUSD)
-                //     : 0
-                // }}
-                newLTVData={{
+                newUtilizationData={{
                   time: dayjs().unix(),
                   value: coinData
-                    ? parseFloat(coinData.formattedBaseLTVasCollateral)
+                    ? parseFloat(coinData.totalDebtUSD) / parseFloat(coinData.totalLiquidityUSD) * 10000
                     : 0
                 }}
                 coinSymbol={coinSymbol}
@@ -297,17 +333,31 @@ function Dashboard() {
                 )
               })}
             </div>
-            <div className={`sticky bottom-0 flex flex-col py-5 px-5 bg-[#110e18] rounded-xl`}>
-              <div className={`border border-white/10 rounded-xl`}>
+            <div className={`sticky bottom-0 flex flex-col justify-between py-5 px-5 bg-[#110e18] rounded-xl`}>
+              <div className={`flex-1 border border-white/10 rounded-xl`}>
                 <textarea
                   className={
-                    `w-full flex-2 outline-0 text-white h-25 p-3 resize-none`
+                    `w-full outline-0 text-white p-3 resize-none`
                   }
                   placeholder="Message Deepseek"
                   value={userInput}
                   onChange={(e) => setUserInput(e.target.value)}
                 />
-                <div className={`flex-1`}></div>
+              </div>
+              <div className={`flex-1 flex flex-row-reverse pt-3`}>
+                <IconButton 
+                  className={
+                    `h-12 w-12 cursor-pointer flex bg-[#7360ca] transition-all rounded-full items-center
+                     justify-center duration-150 hover:bg-[#7350ca]`
+                  }
+                  onClick={() => {
+                    handleAskingAI(userInput);
+                    setMessages([...messages, userInput]);
+                    setUserInput("");
+                  }}
+                >
+                  <ArrowUpRight className={`h-5 w-5`} color="white"/>
+                </IconButton>
               </div>
             </div>
           </div>

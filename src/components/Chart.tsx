@@ -4,9 +4,7 @@ import React, { useEffect, useRef } from 'react';
 export default function ChartComponent(props) {
   const {
     data,
-    // newSupplyData,
-    // newBorrowData,
-    newLTVData,
+    newUtilizationData,
     colors: {
       backgroundColor = 'transparent',
       ltvColor = '#2962FF',
@@ -18,7 +16,7 @@ export default function ChartComponent(props) {
   } = props;
 
   const chartContainerRef = useRef<HTMLDivElement>(null);
-  const ltvSeries = useRef<ISeriesApi<"Line">>(null);
+  const utilizationSeries = useRef<ISeriesApi<"Line">>(null);
 
   useEffect(() => {
     const handleResize = () => {
@@ -41,7 +39,7 @@ export default function ChartComponent(props) {
 
     // supplySeries.current = chart.addSeries(LineSeries, { color: supplyColor});
     // borrowSeries.current = chart.addSeries(LineSeries, { color: borrowColor});
-    ltvSeries.current = chart.addSeries(LineSeries, {color: ltvColor});
+    utilizationSeries.current = chart.addSeries(LineSeries, {color: ltvColor});
     if (chartContainerRef.current === null) {
       // supplySeries.current.setData(data);
       // borrowSeries.current.setData(data);
@@ -58,10 +56,8 @@ export default function ChartComponent(props) {
   }, [coinSymbol]);
 
   useEffect(() => {
-    // supplySeries.current.update(newSupplyData);
-    // borrowSeries.current.update(newBorrowData);
-    ltvSeries.current.update(newLTVData);
-  }, [newLTVData]);
+    utilizationSeries.current.update(newUtilizationData);
+  }, [newUtilizationData]);
 
   return (
     <div

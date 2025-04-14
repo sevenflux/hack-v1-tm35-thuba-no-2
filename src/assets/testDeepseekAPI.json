@@ -1,0 +1,28 @@
+{
+  "id": "3710cc0e-d03b-4186-af5f-f8363be9947a",
+  "object": "chat.completion",
+  "created": 1744630421,
+  "model": "deepseek-chat",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "```json\n{\n  \"message\": \"Here is the information about Wrapped Ether (WETH):\\n\\n- **Symbol**: WETH\\n- **Price in USD**: $1674.78\\n- **Total Liquidity (USD)**: $3,913,931,796.08\\n- **Available Liquidity (USD)**: $401,429,852.00\\n- **Total Debt (USD)**: $3,512,501,944.08\\n- **Borrow Usage Ratio**: 89.74%\\n- **Base LTV as Collateral**: 80.5%\\n- **Reserve Liquidation Threshold**: 83%\\n- **Reserve Liquidation Bonus**: 5%\\n- **Supply APY**: 2.07%\\n- **Variable Borrow APY**: 2.73%\\n- **Borrow Cap (USD)**: $4,521,912,070.09\\n- **Supply Cap (USD)**: $5,024,346,744.54\\n- **Supply Usage Ratio**: 89.74%\\n- **Supply APR**: 2.05%\\n- **Variable Borrow APR**: 2.69%\\n- **Is Frozen**: false\\n- **Is Active**: true\\n- **Unbacked (USD)**: $0\\n- **Accrued to Treasury**: 32,876,453,090,123,889,778\\n\\nWould you like to perform any operations (e.g., buy, sell, or evaluate) on WETH?\"\n}\n```"
+      },
+      "logprobs": null,
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 464,
+    "completion_tokens": 325,
+    "total_tokens": 789,
+    "prompt_tokens_details": {
+      "cached_tokens": 192
+    },
+    "prompt_cache_hit_tokens": 192,
+    "prompt_cache_miss_tokens": 272
+  },
+  "system_fingerprint": "fp_3d5141a69a_prod0225"
+}
