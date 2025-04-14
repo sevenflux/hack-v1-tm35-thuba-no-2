@@ -45,7 +45,7 @@ function Dashboard() {
   const [supplyingValue,     setSupplyingValue] = useState<string>("◌");
   const [borrowingValue,     setBorrowingValue] = useState<string>("◌");
   const [utilizationValue, setUtilizationValue] = useState<string>("◌");
-  const [aiSuggestion,         setAISuggestion] = useState<string>(TEST_ANSWER_1)
+  const [aiSuggestion,         setAISuggestion] = useState<string>("");
   const [messages,                 setMessages] = useState<string[]>([]);
   const [userInput,               setUserInput] = useState<string>("");
 
@@ -224,7 +224,7 @@ function Dashboard() {
           {"role": "user", "content": message}
         ],
         "temperature": 0.3,
-        "max_tokens": 1000
+        "max_tokens": 3000
       })
     })
     .then((response: Response) => response.json())
@@ -233,17 +233,30 @@ function Dashboard() {
       const deepseekParse: DeepseekReturnJSON 
         = JSON.parse(deepseekReturn.substring(8, deepseekReturn.length - 3));
       setMessages(prev => [...prev, deepseekParse.message]);
+
+      for (let operation of deepseekParse.opArray) {
+        switch (operation.op) {
+          case 1 : {
+            setCoinSymbol(operation.data);
+            break;
+          };
+          case 2 : {
+            setAISuggestion(operation.data);
+            break;
+          }
+        }
+      }
     })
   }
 
   useEffect(() => {
     fetchContractData(CONTRACT_DATA_USER);
     const intervalContract = setInterval(() => {
-      if (coinSymbol === "") return;
+      // if (coinSymbol === "") return;
       fetchContractData(CONTRACT_DATA_USER);
     }, 10000);
     return () => clearInterval(intervalContract);
-  }, [])
+  }, [coinSymbol])
 
   // I find a safe way to dynamically generate the template string in tailwindCSS
   // property: using safelist prop in tailwind.config.js
@@ -290,22 +303,10 @@ function Dashboard() {
             <GlassCard>
               <ChartComponent 
                 data={[]} 
-                // newSupplyData={{
-                //   time: dayjs().unix(),
-                //   value: coinData
-                //     ? parseFloat(coinData.totalLiquidityUSD)
-                //     : 0
-                // }}
-                // newBorrowData={{
-                //   time: dayjs().unix(),
-                //   value: coinData
-                //     ? parseFloat(coinData.totalDebtUSD)
-                //     : 0
-                // }}
-                newLTVData={{
+                newUtilizationData={{
                   time: dayjs().unix(),
                   value: coinData
-                    ? parseFloat(coinData.formattedBaseLTVasCollateral)
+                    ? parseFloat(coinData.totalDebtUSD) / parseFloat(coinData.totalLiquidityUSD) * 10000
                     : 0
                 }}
                 coinSymbol={coinSymbol}
