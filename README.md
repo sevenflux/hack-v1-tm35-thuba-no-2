@@ -10,7 +10,7 @@ Ask for AI's suggestion.
 
 # 📌 Demo
 
-<video src="./assets/2025-04-17 22-11-02.mp4" width="320" height="240" controls></video>
+<video src="./assets/demo-2025-04-17-22-11-02.mp4" width="320" height="240" controls></video>
 
 # 🔭 Future Todo
 
